@@ -1,13 +1,24 @@
 import React from 'react';
-import { View, Button, FlatList, StyleSheet, Dimensions, TouchableOpacity, Image as RNImage } from 'react-native';
-import { connect } from 'react-redux';
-import { addPhoto, deletePhoto, clearPhotos } from '../redux/Actions';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { Image } from 'react-native-compressor';
+import {
+  View,
+  Button,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Image as RNImage,
+} from 'react-native';
+import {connect} from 'react-redux';
+import {addPhoto, deletePhoto, clearPhotos} from '../redux/Actions';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import {Image} from 'react-native-compressor';
 import Icon from 'react-native-vector-icons/Entypo';
+// import { HeaderButtons, Item } from 'react-navigation-header-buttons';
+import {useNavigation} from '@react-navigation/native';
+import DrawerNavbar from './DrawerNavbar';
 
-const PhotoGallery = ({ photos, addPhoto, deletePhoto, clearPhotos }) => {
-  const selectImage = (sourceType) => {
+const PhotoGallery = ({photos, addPhoto, deletePhoto, clearPhotos}) => {
+  const selectImage = sourceType => {
     const options = {
       title: 'Select Images',
       storageOptions: {
@@ -25,37 +36,37 @@ const PhotoGallery = ({ photos, addPhoto, deletePhoto, clearPhotos }) => {
       durationLimit: 10,
       selectionLimit: 0, // Set this to 0 for unlimited selection from the gallery
     };
-  
+
     if (sourceType === 'camera') {
-      launchCamera(options, (response) => {
+      launchCamera(options, response => {
         handleImageResponse(response);
       });
     } else if (sourceType === 'gallery') {
-      launchImageLibrary(options, (response) => {
+      launchImageLibrary(options, response => {
         handleImageResponse(response);
       });
     }
   };
 
-  const handleImageResponse = (response) => {
+  const handleImageResponse = response => {
     if (response.didCancel) {
       console.log('Image selection cancelled');
     } else if (response.error) {
       console.log('Image selection error:', response.error);
     } else if (response.assets && response.assets.length > 0) {
       try {
-        const compressedImages = response.assets.map(async (asset) => {
+        const compressedImages = response.assets.map(async asset => {
           const compressedImage = await Image.compress(asset.uri);
           return compressedImage;
         });
         Promise.all(compressedImages)
-          .then((compressedImages) => {
-            compressedImages.forEach((imageUri) => {
+          .then(compressedImages => {
+            compressedImages.forEach(imageUri => {
               // Dispatch the addPhoto action to add the image to the Redux store
               addPhoto(imageUri);
             });
           })
-          .catch((error) => {
+          .catch(error => {
             console.error('Image compression error:', error);
           });
       } catch (error) {
@@ -63,23 +74,22 @@ const PhotoGallery = ({ photos, addPhoto, deletePhoto, clearPhotos }) => {
       }
     }
   };
-  
-  
 
-  const deleteImage = (index) => {
-    deletePhoto(index); 
+  const deleteImage = index => {
+    deletePhoto(index);
   };
-  
 
   const clearImages = () => {
-    clearPhotos(); 
+    clearPhotos();
   };
-  
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({item, index}) => (
     <View style={styles.imageContainer}>
-      <RNImage source={{ uri: item }} style={styles.image} />
-      <TouchableOpacity onPress={() => deleteImage(index)} style={styles.deleteIconContainer}>
+      {/* Add a button with the drawer icon */}
+      <RNImage source={{uri: item}} style={styles.image} />
+      <TouchableOpacity
+        onPress={() => deleteImage(index)}
+        style={styles.deleteIconContainer}>
         <Icon name="circle-with-cross" size={20} color="white" />
       </TouchableOpacity>
     </View>
@@ -87,8 +97,15 @@ const PhotoGallery = ({ photos, addPhoto, deletePhoto, clearPhotos }) => {
 
   return (
     <View style={styles.container}>
-      <Button title="Select Photos from Gallery" onPress={() => selectImage('gallery')} />
-      <Button title="Take Photos from Camera" onPress={() => selectImage('camera')} />
+      {/* <DrawerNavbar/> */}
+      <Button
+        title="Select Photos from Gallery"
+        onPress={() => selectImage('gallery')}
+      />
+      <Button
+        title="Take Photos from Camera"
+        onPress={() => selectImage('camera')}
+      />
       <Button title="Clear Images" onPress={clearImages} />
       <FlatList
         data={photos}
@@ -101,9 +118,7 @@ const PhotoGallery = ({ photos, addPhoto, deletePhoto, clearPhotos }) => {
   );
 };
 
-
-
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   return {
     photos: state.photos.photos,
   };
@@ -149,8 +164,5 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 });
-
-
-
 
 export default connect(mapStateToProps, mapDispatchToProps)(PhotoGallery);
