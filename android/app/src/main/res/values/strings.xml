@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">zaap</string>
+    <string name="facebook_app_id">663917075834962</string>
+    <string name="facebook_client_token">7becccc8119d3a7f758bf8f0ea78d2a4</string>
 </resources>
